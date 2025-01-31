@@ -4,14 +4,14 @@ import datetime
 
 def add_time_to_date(date: str) -> str:
     """
-    Takes a string representing a date in the format YYYY-MM-DD and returns a string representing 
+    Takes a string representing a date in the format YYYY-MM-DD and returns a string representing
     the same date and time at which the function is called in ISO format.
 
     Args:
     - date: A string representing a date in the format YYYY-MM-DD.
 
     Returns:
-    - formatted_datetime: A string representing the date and time at which the function is called 
+    - formatted_datetime: A string representing the date and time at which the function is called
                         in ISO format (YYYY-MM-DDTHH:MM:SS.sssZ).
     """
     now = datetime.datetime.now()
