@@ -1,30 +1,80 @@
-**ReadMe**
+# Проект: Программа учета выдачи оборудования
 
-This is a Python program for handling user requests. It requires environmental variables to run which are loaded using the `dotenv` package.
+## Статус
+На данный момент программа не работает, так как было отключено api к базе данных.
 
-### Requirements
+## Описание
+Этот проект представляет собой приложение для управления оборудованием, пользователями и запросами на использование оборудования. Приложение разработано с использованием Python и библиотеки PyQt5 для создания графического интерфейса. Оно позволяет:
+- Управлять пользователями (добавление, редактирование, удаление).
+- Управлять оборудованием (добавление, редактирование, удаление).
+- Создавать и управлять запросами на использование оборудования.
+- Проверять наличие оборудования и предлагать альтернативы, если оборудование отсутствует.
+- Экспортировать данные в форматы Excel и Word.
 
-To use this program, you need to have the following installed:
+## Технологии
+- **Python** - основной язык программирования.
+- **PyQt5** - библиотека для создания графического интерфейса.
+- **Requests** - для выполнения HTTP-запросов к API.
+- **dotenv** - для управления переменными окружения.
+- **xlwt** - для создания Excel-файлов.
+- **python-docx** - для создания Word-документов.
+- **qdarkstyle** - для поддержки темного режима интерфейса.
+- **Jinja2** - для генерации HTML-шаблонов писем.
+- **BeautifulSoup** - для парсинга HTML-кода писем.
+- **smtplib** - для отправки писем через SMTP.
+- **imaplib** - для получения писем из почтового ящика через IMAP.
+- **email** - для работы с MIME-сообщениями (создание и декодирование писем).
 
-1. Python 3
-2. pip
-3. Packages specified in `requirements.txt`
+## Установка
+1. Убедитесь, что у вас установлен Python 3.9 или выше.
+2. Установите необходимые зависимости:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Запустите приложение:
+   ```bash
+   python main_app.py
+   ```
 
-### Installation
+## Использование
+### Вход в систему
+При запуске приложения откроется окно входа, где необходимо ввести email и пароль. Если данные верны, откроется главное окно приложения.
 
-1. Clone the repository - `git clone <repository url>`
-2. Install dependencies - `pip install -r requirements.txt`
-3. Rename the `.env.example` file to `.env` and fill in the environment variables according to your email server requirements (e.g. EMAIL_SENDER, EMAIL_USERNAME, EMAIL_PASSWORD).
-4. Run the script - `python main.py`.
+### Управление пользователями
+- **Добавление пользователя**: Нажмите кнопку "Добавить пользователя" и заполните форму.
+- **Редактирование пользователя**: Выберите пользователя в таблице и измените необходимые данные.
+- **Удаление пользователя**: Выберите пользователя и нажмите кнопку "Удалить".
 
-### How it works
+### Управление оборудованием
+- **Добавление оборудования**: Нажмите кнопку "Добавить оборудование" и заполните форму.
+- **Редактирование оборудования**: Выберите оборудование в таблице и измените необходимые данные.
+- **Удаление оборудования**: Выберите оборудование и нажмите кнопку "Удалить".
 
-The program checks a specific mailbox for new user requests, converts the requests to a dictionary and validates the user's information. If everything checks out, the program saves the new user's information to a database, approves the request and exports all user requests to an excel file and a word document. If any errors occur during validation or the user request does not meet certain requirements (e.g. correct hardware), the program sends a denial email to the user with the appropriate reason for their request being denied.
+### Управление запросами
+- **Создание запроса**: Нажмите кнопку "Добавить запрос" и заполните форму.
+- **Изменение статуса запроса**: Выберите запрос и измените его статус с помощью выпадающего списка.
 
-### Usage
+### Экспорт данных
+- **Экспорт в Excel**: Выберите "Файл -> Экспорт в Excel" и укажите путь для сохранения файла.
+- **Экспорт в Word**: Выберите "Файл -> Экспорт в Word" и укажите путь для сохранения файла.
 
-1. Make sure the environmental variables are correctly set and the email account has new user requests.
-2. Run the script - `python main.py`
-3. The program will automatically validate the user requests and email users the result if the request is denied. If approved, the request will be saved to a database and the data will be exported to excel and word documents named "user_requests".
+## Авторы
+- Болезнов Степан - разработка десктопного приложения и api для базы данных
+- Ряднов Иван - разработка функционала работы с почтой и поиска альтернатив для оборудования
 
-   https://forms.yandex.ru/u/6460beebd0468888856aac7e/
+## Дополнительно
+
+### Настройка почты
+Для работы с почтой необходимо настроить SMTP-сервер. Для этого:
+1. Переименуйте файл `.env.example` в `.env`.
+2. Заполните переменные окружения в файле `.env` в соответствии с требованиями вашего почтового сервера:
+   - `EMAIL_SENDER` — имя отправителя (например, MIEM).
+   - `EMAIL_USERNAME` — ваш email для входа в почтовый аккаунт.
+   - `EMAIL_PASSWORD` — пароль от почтового аккаунта.
+
+### Как это работает
+Программа проверяет почтовый ящик на наличие новых запросов от пользователей. Если запросы найдены, программа:
+1. Конвертирует запросы в словарь и проверяет информацию пользователя.
+2. Если данные корректны, программа сохраняет информацию о новом пользователе в базу данных и одобряет запрос.
+3. Все запросы экспортируются в файлы Excel и Word.
+4. Если во время проверки возникают ошибки или запрос не соответствует требованиям (например, указано некорректное оборудование), программа отправляет пользователю письмо с отказом и указанием причины.

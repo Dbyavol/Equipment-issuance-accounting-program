@@ -26,45 +26,36 @@ PATH = os.getcwd()
 DB_ACCESS_TOKEN = "Basic NVJOWUJkTGR1VER4UUNjTThZWXJiNW5BOkg0ZFNjQXlHYlM4OUtnTGdaQnMydlBzaw=="
 DB_URL = "https://helow19274.ru/aip/api"
 
-
 def format_date(date: str) -> str:
     """
-    Takes a string representing a date in the format YYYY-MM-DD and returns a string representing
-    the same date and time at which the function is called in ISO format.
+    Преобразует строку с датой формата ДД.ММ.ГГГГ в ISO-формат с текущим временем.
 
-    Args:
-    - date: A string representing a date in the format YYYY-MM-DD.
-
-    Returns:
-    - formatted_datetime: A string representing the date and time at which the function is called
-                        in ISO format (YYYY-MM-DDTHH:MM:SS.sssZ).
+    :param date: Дата в формате "ДД.ММ.ГГГГ"
+    :return: Строка с датой в ISO-формате.
     """
     now = datetime.datetime.now()
-    date_lst = [int(_) for _ in date.split('.')]
-    year = date_lst[2]
-    month = date_lst[1]
-    day = date_lst[0]
-    new_date = datetime.datetime(
-        year, month, day, now.hour, now.minute, now.second, now.microsecond)
-    formatted_datetime = new_date.isoformat()
-    return formatted_datetime
-
+    day, month, year = map(int, date.split('.'))
+    new_date = datetime.datetime(year, month, day, now.hour, now.minute, now.second, now.microsecond)
+    return new_date.isoformat()
 
 def set_keys(email: str, password: str) -> None:
     """
-    Запись '.env' файла
+    Записывает учетные данные почты в файл .env.
+    
     :param email: Логин почты
     :param password: Пароль почты
     """
-    dotenv.set_key(f'{PATH}/.env', "EMAIL_SENDER", "MIEM")
-    dotenv.set_key(f'{PATH}/.env', "API_URL", "https://helow19274.ru/aip/api")
-    dotenv.set_key(f'{PATH}/.env', 'DB_ACCESS_TOKEN',
-                   "Basic NVJOWUJkTGR1VER4UUNjTThZWXJiNW5BOkg0ZFNjQXlHYlM4OUtnTGdaQnMydlBzaw==")
     dotenv.set_key(f'{PATH}/.env', "EMAIL_USERNAME", email)
     dotenv.set_key(f'{PATH}/.env', "EMAIL_PASSWORD", password)
 
-
 def check_email_credentials(email_username: str, email_password: str) -> bool:
+    """
+    Проверяет учетные данные почты через SMTP.
+    
+    :param email_username: Логин почты
+    :param email_password: Пароль почты
+    :return: True, если данные верны, иначе False.
+    """
     smtp_server = "smtp.yandex.ru"
     try:
         mail = smtplib.SMTP_SSL(smtp_server)
@@ -74,9 +65,14 @@ def check_email_credentials(email_username: str, email_password: str) -> bool:
     except smtplib.SMTPAuthenticationError:
         return False
 
-
 class LoginWindow(QtWidgets.QMainWindow):
+    """
+    Главное окно входа в систему.
+    """
     def __init__(self):
+        """
+        Инициализация окна входа.
+        """
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('interface/icons/entry_icon.png'))
         self.table_window = Ui_MainWindow
@@ -89,6 +85,9 @@ class LoginWindow(QtWidgets.QMainWindow):
         self.ui.entry_last_button.clicked.connect(self.previous_session)
 
     def previous_session(self):
+        """
+        Вход в предыдущую сессию, если она существует.
+        """
         if self.email_username:
             dotenv.load_dotenv(f'{PATH}/.env')
             email_username = os.getenv("EMAIL_USERNAME")
@@ -99,7 +98,6 @@ class LoginWindow(QtWidgets.QMainWindow):
             self.table_window.user_table()
             hardware = helpers.get_request('hardware')
             boards = [x['name'] for x in hardware]
-
             self.table_window.ui.hardware_list.addItems(boards)
             self.table_window.show()
         else:
@@ -111,7 +109,9 @@ class LoginWindow(QtWidgets.QMainWindow):
             )
 
     def check(self):
-        """Проверка почты"""
+        """
+        Проверка учетных данных почты и вход в систему.
+        """
         email = self.ui.email_line.text()
         password = self.ui.password_line.text()
         if check_email_credentials(email, password):
@@ -121,7 +121,6 @@ class LoginWindow(QtWidgets.QMainWindow):
             self.table_window.user_table()
             hardware = helpers.get_request('hardware')
             boards = [x['name'] for x in hardware]
-
             self.table_window.ui.hardware_list.addItems(boards)
             self.table_window.show()
         else:
@@ -134,7 +133,13 @@ class LoginWindow(QtWidgets.QMainWindow):
 
 
 class HardDialog(QDialog):
+    """
+    Диалоговое окно для добавления новой аппаратной платы.
+    """
     def __init__(self):
+        """
+        Инициализация интерфейса диалогового окна.
+        """
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('interface/icons/hardware_icon.png'))
         self.ui = Ui_Newhard()
@@ -145,103 +150,76 @@ class HardDialog(QDialog):
         self.ui.spec_radio.pressed.connect(self.add_spec)
 
     def add_spec(self):
+        """
+        Отображает или скрывает дополнительные параметры спецификации.
+        """
         if self.ui.pin_label.isHidden():
-            self.ui.gridLayout.addWidget(self.ui.pin_label, 7, 0, 1, 1)
-            self.ui.pin_label.show()
-            self.ui.gridLayout.addWidget(self.ui.pin_line, 8, 0, 1, 2)
-            self.ui.pin_line.show()
-            self.ui.gridLayout.addWidget(self.ui.log_label, 9, 0, 1, 1)
-            self.ui.log_label.show()
-            self.ui.gridLayout.addWidget(self.ui.log_line, 10, 0, 1, 2)
-            self.ui.log_line.show()
-            self.ui.gridLayout.addWidget(self.ui.mult_label, 11, 0, 1, 1)
-            self.ui.mult_label.show()
-            self.ui.gridLayout.addWidget(self.ui.mult_line, 12, 0, 1, 2)
-            self.ui.mult_line.show()
-            self.ui.gridLayout.addWidget(self.ui.pll_label, 13, 0, 1, 1)
-            self.ui.pll_label.show()
-            self.ui.gridLayout.addWidget(self.ui.pll_line, 14, 0, 1, 2)
-            self.ui.pll_line.show()
-            self.ui.gridLayout.addWidget(self.ui.memory_label, 15, 0, 1, 1)
-            self.ui.memory_label.show()
-            self.ui.gridLayout.addWidget(self.ui.memory_line, 16, 0, 1, 2)
-            self.ui.memory_line.show()
+            elements = [
+                (self.ui.pin_label, 7), (self.ui.pin_line, 8),
+                (self.ui.log_label, 9), (self.ui.log_line, 10),
+                (self.ui.mult_label, 11), (self.ui.mult_line, 12),
+                (self.ui.pll_label, 13), (self.ui.pll_line, 14),
+                (self.ui.memory_label, 15), (self.ui.memory_line, 16)
+            ]
+            for widget, row in elements:
+                self.ui.gridLayout.addWidget(widget, row, 0, 1, 2)
+                widget.show()
             box = self.ui.buttonBox
             self.ui.gridLayout.removeWidget(self.ui.buttonBox)
             self.ui.gridLayout.addWidget(box, 17, 1, 1, 1)
         else:
-            self.ui.memory_line.hide()
-            self.ui.memory_label.hide()
-            self.ui.pll_line.hide()
-            self.ui.pll_label.hide()
-            self.ui.mult_line.hide()
-            self.ui.mult_label.hide()
-            self.ui.pin_label.hide()
-            self.ui.pin_line.hide()
-            self.ui.log_label.hide()
-            self.ui.log_line.hide()
+            for widget in [
+                self.ui.memory_line, self.ui.memory_label, self.ui.pll_line, self.ui.pll_label,
+                self.ui.mult_line, self.ui.mult_label, self.ui.pin_label, self.ui.pin_line,
+                self.ui.log_label, self.ui.log_line
+            ]:
+                widget.hide()
             self.adjustSize()
 
     def check(self):
-        if self.ui.spec_radio.isChecked():
-            specs = {
-                "log_elems": self.ui.log_line.text(),
-                'memory': self.ui.memory_line.text(),
-                'pll': self.ui.pll_line.text(),
-                'multiplier': self.ui.mult_line.text(),
-                'pins': self.ui.pin_line.text()
-            }
-        else:
-            specs = {}
-        name = self.ui.name_line.text()
-        description = self.ui.description_line.text()
-        typ = self.ui.type_line.currentText()
+        """
+        Проверяет введенные данные и отправляет запрос на создание новой аппаратной платы.
+        """
+        specs = {
+            "log_elems": self.ui.log_line.text(),
+            "memory": self.ui.memory_line.text(),
+            "pll": self.ui.pll_line.text(),
+            "multiplier": self.ui.mult_line.text(),
+            "pins": self.ui.pin_line.text()
+        } if self.ui.spec_radio.isChecked() else {}
+        
         hardware_data = {
-            "name": name,
-            "type": typ,
-            "description": description,
+            "name": self.ui.name_line.text(),
+            "type": self.ui.type_line.currentText(),
+            "description": self.ui.description_line.text(),
             "image_link": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStW9UvyhB2beq-tiyJMhzWdP98Rny7PzRaPA&usqp=CAU",
             "specifications": specs
         }
 
         hardware_response = helpers.post_request('hardware', hardware_data)
         if 'detail' in hardware_response:
-            if 'type' in hardware_response['detail'][0]['loc']:
-                QMessageBox.warning(
-                    self,
-                    "Ошибка",
-                    "Ошибка в вводе типа платы",
-                    QMessageBox.StandardButton.Ok
-                )
-            elif 'name' in hardware_response['detail'][0]['loc']:
-                QMessageBox.warning(
-                    self,
-                    "Ошибка",
-                    "Ошибка в вводе названия",
-                    QMessageBox.StandardButton.Ok
-                )
-            elif 'description' in hardware_response['detail'][0]['loc']:
-                QMessageBox.warning(
-                    self,
-                    "Ошибка",
-                    "Ошибка в вводе описания. Если оно отсутствует введите -",
-                    QMessageBox.StandardButton.Ok
-                )
-            elif 'specifications' in hardware_response['detail'][0]['loc']:
-                QMessageBox.warning(
-                    self,
-                    "Ошибка",
-                    "Ошибка в вводе спецификации",
-                    QMessageBox.StandardButton.Ok
-                )
-            else:
-                return QMessageBox.warning(self, 'Неизвестная ошибка', str(hardware_response))
+            error_messages = {
+                'type': "Ошибка в вводе типа платы",
+                'name': "Ошибка в вводе названия",
+                'description': "Ошибка в вводе описания. Если оно отсутствует, введите -",
+                'specifications': "Ошибка в вводе спецификации"
+            }
+            for key, message in error_messages.items():
+                if key in hardware_response['detail'][0]['loc']:
+                    return QMessageBox.warning(self, "Ошибка", message, QMessageBox.StandardButton.Ok)
+            return QMessageBox.warning(self, 'Неизвестная ошибка', str(hardware_response))
         else:
             self.close()
 
 
 class UserDialog(QDialog):
+    """
+    Диалоговое окно для добавления нового пользователя.
+    """
     def __init__(self):
+        """
+        Инициализация интерфейса диалогового окна.
+        """
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('interface/icons/user_icon.png'))
         self.ui = Ui_Newuser()
@@ -251,52 +229,46 @@ class UserDialog(QDialog):
         self.ui.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
 
     def check(self):
-        surname = self.ui.surname_line.text()
-        name = self.ui.name_line.text()
-        patr = self.ui.patr_line.text()
-        group = self.ui.group_line.text()
-        email = self.ui.email_line.text()
-        phone = self.ui.phone_line.text()
-        access = self.ui.access_box.currentText()
+        """
+        Проверяет введенные данные и отправляет запрос на добавление нового пользователя.
+        """
         user_data = {
             "active": True,
-            "type": access,
-            "first_name": name,
-            "last_name": surname,
-            "patronymic": patr,
+            "type": self.ui.access_box.currentText(),
+            "first_name": self.ui.name_line.text(),
+            "last_name": self.ui.surname_line.text(),
+            "patronymic": self.ui.patr_line.text(),
             "image_link": "https://clck.ru/34TfSF",
-            "email": email,
-            "phone": phone,
+            "email": self.ui.email_line.text(),
+            "phone": self.ui.phone_line.text(),
             "card_id": "string",
             "card_key": "string",
-            "comment": group
+            "comment": self.ui.group_line.text()
         }
 
         response = helpers.post_request('user', user_data)
         if 'detail' in response:
-            if 'email' in response['detail'][0]['type']:
-                QMessageBox.warning(
-                    self,
-                    "Ошибка",
-                    "Ошибка в вводе почты",
-                    QMessageBox.StandardButton.Ok
-                )
-            elif 'phone' in response['detail'][0]['type']:
-                QMessageBox.warning(
-                    self,
-                    "Ошибка",
-                    "Ошибка в вводе телефона",
-                    QMessageBox.StandardButton.Ok
-                )
-            else:
-                print("Еще какая-то ошибка")
-                print(response)
+            error_messages = {
+                'email': "Ошибка в вводе почты",
+                'phone': "Ошибка в вводе телефона"
+            }
+            for key, message in error_messages.items():
+                if key in response['detail'][0]['type']:
+                    return QMessageBox.warning(self, "Ошибка", message, QMessageBox.StandardButton.Ok)
+            print("Еще какая-то ошибка")
+            print(response)
         else:
             self.close()
 
 
 class AlternativeDialog(QDialog):
+    """
+    Диалоговое окно для задания параметров альтернативных плат.
+    """
     def __init__(self):
+        """
+        Инициализация интерфейса диалогового окна.
+        """
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('interface/icons/alter_icon.png'))
         self.ui = Ui_Alternative()
@@ -306,6 +278,9 @@ class AlternativeDialog(QDialog):
         self.ui.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
 
     def make_json(self):
+        """
+        Собирает данные из полей ввода и сохраняет их в JSON-файл.
+        """
         log_value = int(self.ui.log_spin.text())
         log_index = float(self.ui.log_spin2.text().replace(',', '.'))
         mem_value = int(self.ui.mem_spin.text())
@@ -328,7 +303,13 @@ class AlternativeDialog(QDialog):
 
 
 class RequestDialog(QDialog):
+    """
+    Диалоговое окно для создания запроса на оборудование.
+    """
     def __init__(self):
+        """
+        Инициализация интерфейса диалогового окна.
+        """
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('interface/icons/request_icon.png'))
         self.ui = Ui_NewRequest()
@@ -338,89 +319,54 @@ class RequestDialog(QDialog):
         self.ui.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
 
     def check(self):
-        name = self.ui.name_line.text()
-        last_name = self.ui.last_name_line.text()
-        email = self.ui.email_line.text()
-        phone = self.ui.phone_line.text()
+        """
+        Проверяет введенные данные и отправляет запрос на создание нового запроса.
+        """
+        name, last_name = self.ui.name_line.text(), self.ui.last_name_line.text()
+        email, phone = self.ui.email_line.text(), self.ui.phone_line.text()
         response = helpers.get_request('user')
-        user_id = 0
-        for x in response:
-            if x.get('first_name') == name and x.get('last_name') == last_name:
-                user_id = x.get('id')
+        user_id = next((x['id'] for x in response if x.get('first_name') == name and x.get('last_name') == last_name), 0)
+        
         if user_id == 0:
             user_data = {
-                "active": True,
-                "type": 'user',
-                "first_name": name,
-                "last_name": last_name,
-                "patronymic": '',
-                "image_link": "https://clck.ru/34TfSF",
-                "email": email,
-                "phone": phone,
-                "card_id": "string",
-                "card_key": "string",
-                "comment": ''
+                "active": True, "type": 'user', "first_name": name, "last_name": last_name,
+                "patronymic": '', "image_link": "https://clck.ru/34TfSF", "email": email,
+                "phone": phone, "card_id": "string", "card_key": "string", "comment": ''
             }
-
             user_response = helpers.post_request('user', user_data)
             if 'detail' in user_response:
-                if 'email' in user_response['detail'][0]['type']:
-                    QMessageBox.warning(
-                        self,
-                        "Ошибка",
-                        "Ошибка в вводе почты",
-                        QMessageBox.StandardButton.Ok
-                    )
-                elif 'phone' in user_response['detail'][0]['type']:
-                    QMessageBox.warning(
-                        self,
-                        "Ошибка",
-                        "Ошибка в вводе телефона",
-                        QMessageBox.StandardButton.Ok
-                    )
-                else:
-                    return QMessageBox.warning(self, 'Неизвестная ошибка', str(response))
-            else:
-                user_id = user_response['id']
-        if user_id != 0:
-            cabinet = self.ui.cab_box.currentText()
-            locations = helpers.get_request('location')
-            for x in locations:
-                if x['name'] == cabinet:
-                    cabinet = x['id']
-
-            board = self.ui.hardware_box.currentText()
-            boards = helpers.get_request('hardware')
-            for x in boards:
-                if x['name'] == board:
-                    hardware = x['id']
-            count = self.ui.count_box.text()
-            dat = self.ui.date1_edit.text()
-            issue_date = format_date(dat)
-            dat = self.ui.date2_edit.text()
-            return_date = format_date(dat)
-            comment = self.ui.comment_line.text()
+                error_messages = {'email': "Ошибка в вводе почты", 'phone': "Ошибка в вводе телефона"}
+                for key, message in error_messages.items():
+                    if key in user_response['detail'][0]['type']:
+                        return QMessageBox.warning(self, "Ошибка", message, QMessageBox.StandardButton.Ok)
+                return QMessageBox.warning(self, 'Неизвестная ошибка', str(user_response))
+            user_id = user_response['id']
+        
+        if user_id:
+            locations = {x['name']: x['id'] for x in helpers.get_request('location')}
+            cabinets = locations.get(self.ui.cab_box.currentText())
+            
+            hardware_list = {x['name']: x['id'] for x in helpers.get_request('hardware')}
+            hardware = hardware_list.get(self.ui.hardware_box.currentText())
+            
             data = {
-                "user": user_id,
-                "location": cabinet,
-                "status": "new",
-                "comment": comment,
-                "taken_date": issue_date,
-                "return_date": return_date,
-                "issued_by": user_id,
-                "hardware": [
-                    {
-                        "hardware": hardware,
-                        "count": count
-                    }
-                ]
+                "user": user_id, "location": cabinets, "status": "new", "comment": self.ui.comment_line.text(),
+                "taken_date": format_date(self.ui.date1_edit.text()),
+                "return_date": format_date(self.ui.date2_edit.text()), "issued_by": user_id,
+                "hardware": [{"hardware": hardware, "count": self.ui.count_box.text()}]
             }
             response = helpers.post_request('request', data)
             print(response)
 
 
 class Email(QDialog):
+    """
+    Диалоговое окно для изменения почты.
+    """
     def __init__(self):
+        """
+        Инициализация интерфейса диалогового окна.
+        """
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('interface/icons/Logo_Email.jpg'))
         self.table_window = Ui_MainWindow
@@ -446,7 +392,13 @@ class Email(QDialog):
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """
+    Главное окно приложения.
+    """
     def __init__(self):
+        """
+        Инициализация главного окна и подключение обработчиков событий.
+        """
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('interface/icons/main_icon.jpg'))
         self.email_dialog = Ui_Email
@@ -481,6 +433,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.boxes = {}
 
     def accounting(self):
+        """
+        Проверка сообщений на почте
+        """
         message = start()
         return QMessageBox.warning(
             self,
@@ -491,7 +446,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def check_availability(self):
         """
-        Проверка наличия платы
+        Проверка наличия платы на складе
         """
         current_item = self.ui.hardware_list.currentItem()
         if current_item is None:
@@ -543,10 +498,16 @@ class MainWindow(QtWidgets.QMainWindow):
             message.exec_()
 
     def configure_email(self):
+        """
+        Открытие окна настройки электронной почты.
+        """
         self.email_dialog = Email()
         self.email_dialog.show()
 
     def add_request(self):
+        """
+        Открытие окна добавления нового запроса.
+        """
         self.request_dialog = RequestDialog()
         hardware = helpers.get_request('hardware')
         boards = [x['name'] for x in hardware]
@@ -557,10 +518,16 @@ class MainWindow(QtWidgets.QMainWindow):
         self.request_dialog.show()
 
     def set_alternatives(self):
+        """
+        Открытие окна задания альтернативных параметров.
+        """
         self.alter_dialog = AlternativeDialog()
         self.alter_dialog.show()
 
     def save_edits(self):
+        """
+        Сохранение в базе данных произведенных изменений в приложении
+        """
         if self.ui.tableWidget.currentItem() is not None:
             item = self.ui.tableWidget.currentItem().text()
             current_row = self.ui.tableWidget.currentRow()
@@ -624,6 +591,9 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.request_table()
 
     def request_table(self):
+        """
+        Загрузка таблицы запросов
+        """
         self.ui.tableWidget.clearContents()
         self.ui.tableWidget.setColumnCount(12)
         self.ui.tableWidget.setHorizontalHeaderLabels(
@@ -658,6 +628,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.tableWidget.setItem(row, 11, QTableWidgetItem(str(reqs[row]["count"])))
 
     def patch_status(self, tableRow):
+        """
+        Отправка изменений в базу данных
+
+        Args:
+            tableRow: измененный ряд
+        """
         item = self.boxes[tableRow].currentText()
         update_id = int(self.ui.tableWidget.item(tableRow, 0).text())
         reqs = helpers.get_request('request')
@@ -679,22 +655,34 @@ class MainWindow(QtWidgets.QMainWindow):
             self.request_table()
 
     def switch_theme(self):
+        """
+        Переключение темы приложения.
+        """
         if self.styleSheet() != "":
             self.setStyleSheet("")
         else:
             self.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
     def add_hardware(self):
+        """
+        Открытие окна добавления нового оборудования.
+        """
         self.hard_dialog = HardDialog()
         self.hard_dialog.show()
 
     def add_user(self):
+        """
+        Открытие окна добавления нового пользователя.
+        """
         self.user_dialog = UserDialog()
         self.user_dialog.ui.surname_line.setText(self.ui.search_line.text())
         self.ui.search_line.clear()
         self.user_dialog.show()
 
     def search_user(self):
+        """
+        Загрузка таблицы пользователей и поиск по фамилии.
+        """
         self.user_table()
         last_name = self.ui.search_line.text().lower()
         in_table = False
@@ -718,6 +706,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.search_line.clear()
 
     def delete(self):
+        """
+        Удаление записи в базе данных.
+        """
         current_row = self.ui.tableWidget.currentRow()
         if current_row < 0:
             return QMessageBox.warning(self, 'Внимание', 'Пожалуйста выберете запись для удаления')
@@ -752,6 +743,9 @@ class MainWindow(QtWidgets.QMainWindow):
                 return QMessageBox.warning(self, 'Ошибка', 'Данная функция пока невозможна')
 
     def user_table(self):
+        """
+        загрузка таблицы пользователей
+        """
         self.ui.tableWidget.clearContents()
         self.ui.tableWidget.setColumnCount(8)
         self.ui.tableWidget.setHorizontalHeaderLabels(
@@ -772,6 +766,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.tableWidget.setItem(row, 0, QTableWidgetItem(str(users[row]["id"])))
 
     def hardware_table(self):
+        """
+        загрузка таблицы оборудования
+        """
         self.ui.tableWidget.clearContents()
         self.ui.tableWidget.setColumnCount(9)
         self.ui.tableWidget.setHorizontalHeaderLabels(["ID", "Тип", "Название", "Описание", "log_elems",
@@ -798,7 +795,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ui.hardware_list.addItem(QListWidgetItem(hardware[row]["name"]))
 
     def save_excel_file(self):
-        """Создание эксель файла"""
+        """
+        Создание эксель файла
+        """
         filepath, _ = QFileDialog.getSaveFileName(self, 'Save File', '', ".xls(*.xls)")
         wbk = Workbook()
         sheet = wbk.add_sheet("sheet", cell_overwrite_ok=True)
@@ -806,7 +805,9 @@ class MainWindow(QtWidgets.QMainWindow):
         wbk.save(filepath)
 
     def make_sheet(self, sheet):
-        """Создание Листа в экселе"""
+        """
+        Создание Листа в экселе
+        """
         for currentColumn in range(self.ui.tableWidget.columnCount()):
             sheet.write(0, currentColumn, str(self.ui.tableWidget.horizontalHeaderItem(currentColumn).text()))
         for currentColumn in range(self.ui.tableWidget.columnCount()):
@@ -825,7 +826,9 @@ class MainWindow(QtWidgets.QMainWindow):
                         pass
 
     def save_doc_file(self):
-        """Создание док файла"""
+        """
+        Создание док файла
+        """
         filepath, _ = QFileDialog.getSaveFileName(self, 'Save File', '', ".docx(*.docx)")
         doc = Document()
         table = doc.add_table(rows=self.ui.tableWidget.rowCount() + 1, cols=self.ui.tableWidget.columnCount())
@@ -855,23 +858,3 @@ if __name__ == '__main__':
     window = LoginWindow()
     window.show()
     sys.exit(app.exec_())
-
-"""
-    error = QMessageBox()
-    error.setWindowTitle("Ошибка")
-    error.setText("Введён неверный пароль")
-    error.setIcon(QMessageBox.Icon.Ok)
-    error.setStandardButtons(QMessageBox.Ok)
-
-    error.exec_()
-    DB_ACCESS_TOKEN = os.getenv("DB_ACCESS_TOKEN")
-    DB_URL = os.getenv("API_URL")
-"""
-"""
-    request_response = requests.delete(f"{DB_URL}/request/{delete_id}",
-                                       headers={
-                                           'Authorization': DB_ACCESS_TOKEN}
-                                       ).json()
-    print(request_response)
-    self.ui.tableWidget.removeRow(current_row)
-"""
